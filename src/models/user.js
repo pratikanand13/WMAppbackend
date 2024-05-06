@@ -10,7 +10,7 @@ const userSchema = new mongoose.Schema({
     },
     email: {
         type: String,
-        
+        unique : true,
         lowercase : true,
         
     },
@@ -23,15 +23,13 @@ const userSchema = new mongoose.Schema({
         required : [true,'Phone number is required'],
         minlength : 10,
         trim:true,
-        validate(value) {
-            if(!validator.isMobilePhone(value)) throw new Error('Please enter valid phone number')
-        }
+        unique : true,
     
       },
     userName : {
         type : String,
         lowercase: true,
-        
+        unique : true,
     } ,
     dateofBirth : {
         type : String,
