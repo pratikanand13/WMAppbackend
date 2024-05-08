@@ -2,7 +2,7 @@ const express = require("express");
 
 const multer = require("multer");
 const sharp = require("sharp");
-const sendOtp = require('../middleware/otp')
+const otp = require("../middleware/otp");
 const auth = require("../middleware/userAuth");
 const User = require("../models/user");
 
@@ -20,22 +20,33 @@ const upload = multer({
   },
 });
 
-router.post("/user/signUp", upload.single("avatar"),sendOtp, async (req, res) => {
+router.post("/user/signUp/userInput", otp.sendOtp, async (req, res) => {
   try {
-    if (req.file) {
-      const buffer = await sharp(req.file.buffer)
-        .resize({ width: 250, height: 250 })
-        .png()
-        .toBuffer();
-      req.body.avatar = buffer;
-    }
-    const user = new User(req.body);
-    await user.save();
-    const token = await user.generateAuthToken();
-    res.status(201).send({ user, token });
+    res.status(200).send("Otp Generated")
   } catch (e) {
     res.status(400).send({ error: e.message });
   }
 });
+
+router.post("/user/signUp/verifyOtp",upload.single("avatar"),otp.verifyOtp, async (req, res) => {
+    try {
+      if (verifyOtp) {
+        if (req.file) {
+          const buffer = await sharp(req.file.buffer)
+            .resize({ width: 250, height: 250 })
+            .png()
+            .toBuffer();
+          req.body.avatar = buffer;
+        }
+        const user = new User(req.body);
+        await user.save();
+        const token = await user.generateAuthToken();
+        res.status(201).send({ user, token });
+      }
+    } catch (e) {
+      res.status(401).send("Otp Verification failed");
+    }
+  }
+);
 
 module.exports = router;

@@ -1,38 +1,55 @@
 const nodemailer = require("nodemailer");
-
+const NodeCache = require("node-cache");
+const myCache = new NodeCache();
 const transporter = nodemailer.createTransport({
-    service: "gmail",
+  service: "gmail",
   port: 465,
-  secure: true, // Use `true` for port 465, `false` for all other ports
+  secure: true,
   auth: {
     user: "teamwissenmonk@gmail.com",
     pass: "epuxzoofdgvonjah",
   },
 });
+
 function generateOTP() {
-    // Generate a random 6-digit number
-    const otp = Math.floor(100000 + Math.random() * 900000);
-    return otp.toString(); // Convert to string
+  const otp = Math.floor(100000 + Math.random() * 900000);
+  return otp.toString();
 }
 
 const otp = generateOTP();
+myCache.set("otp", otp, 120);
 
-const sendOtp = async (req,res,next) => {
-    console.log(req.body)
-  // send mail with defined transport object
-  const { email } = req.body
-  const info = await transporter.sendMail({
-    from: '"Team Wissenmonk" <teamwissenmonk@gmail.com>', // sender address
-    to: email, // list of receivers
-    subject: "Your required otp for signup", // Subject line
-    text: `your otp is ${otp}`, // plain text body
-    
-  });
+const sendOtp = async (req, res, next) => {
+  try {
+    const otp = myCache.get("otp");
+    if (!otp) {
+      throw new Error("OTP not found in cache");
+    }
+    // req.body.otp = otp;
+    const { email } = req.body;
 
-  console.log("Message sent: %s", info.messageId);
-  // Message sent: <d786aa62-4e0a-070a-47ed-0b0666549519@ethereal.email>
-}
+    // send mail with defined transport object
+    const info = await transporter.sendMail({
+      from: '"Team Wissenmonk" <teamwissenmonk@gmail.com>',
+      to: email,
+      subject: "Your required otp for signup",
+      text: `Your otp is ${otp}`,
+    });
 
+    console.log("Message sent: %s", info.messageId);
+    next();
+  } catch (error) {
+    console.error("Error sending OTP:", error);
+    res.status(500).send("Failed to send OTP");
+  }
+};
 
+const verifyOtp = async (req, res, next) => {
+  const { checkOtp } = req.body;
+  const otp = myCache.get("otp");
+  if (checkOtp === otp) {
+    return true;
+  }
+};
 
-module.exports = sendOtp
+module.exports = { sendOtp, verifyOtp };
