@@ -48,5 +48,14 @@ router.post("/user/signUp/verifyOtp",upload.single("avatar"),otp.verifyOtp, asyn
     }
   }
 );
-
+router.post('/user/login' , auth , async (req,res)=>{
+  try {
+    const {email, password} = req.body
+    const user = await User.findByCredentials(email)
+    const token = await user.generateAuthToken()
+    res.status(202).send({user,token})
+  } catch(e) { 
+    res.status(400).send(e)
+  }
+})
 module.exports = router;
