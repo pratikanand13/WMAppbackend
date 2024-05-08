@@ -1,4 +1,6 @@
 const express = require("express");
+const NodeCache = require("node-cache");
+
 
 const multer = require("multer");
 const sharp = require("sharp");
@@ -20,42 +22,48 @@ const upload = multer({
   },
 });
 
-router.post("/user/signUp/userInput", otp.sendOtp, async (req, res) => {
-  try {
-    res.status(200).send("Otp Generated")
-  } catch (e) {
-    res.status(400).send({ error: e.message });
-  }
-});
-
-router.post("/user/signUp/verifyOtp",upload.single("avatar"),otp.verifyOtp, async (req, res) => {
+router.post("/user/signUp/userInput",upload.single("avatar"),otp.sendOtp,async (req, res) => {
     try {
-      if (verifyOtp) {
-        if (req.file) {
-          const buffer = await sharp(req.file.buffer)
-            .resize({ width: 250, height: 250 })
-            .png()
-            .toBuffer();
-          req.body.avatar = buffer;
-        }
-        const user = new User(req.body);
-        await user.save();
-        const token = await user.generateAuthToken();
-        res.status(201).send({ user, token });
+      if (req.file) {
+        const buffer = await sharp(req.file.buffer)
+          .resize({ width: 250, height: 250 })
+          .png()
+          .toBuffer();
+        req.body.avatar = buffer;
       }
+      const user = new User(req.body);
+      await user.save();
+      const token = await user.generateAuthToken();
+      res.status(201).send({ user });
     } catch (e) {
-      res.status(401).send("Otp Verification failed");
+      res.status(400).send({ error: e.message });
     }
   }
 );
-router.post('/user/login' , auth , async (req,res)=>{
+
+router.post("/user/signUp/verifyOtp", otp.verifyOtp, async (req, res) => {
   try {
-    const {email, password} = req.body
-    const user = await User.findByCredentials(email)
-    const token = await user.generateAuthToken()
-    res.status(202).send({user,token})
-  } catch(e) { 
-    res.status(400).send(e)
+    
+    const { user ,token } = req.body;
+    
+    if (req.body.valid) {
+      res.status(200).send({ user, token });
+    } else {
+      await User.deleteOne({ _id: req.user._id });
+      res.status(200).send("User deleted succesfully");
+    }
+  } catch (e) {
+    res.status(401).send(e.message);
   }
-})
+});
+router.post("/user/login", auth, async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    const user = await User.findByCredentials(email, password);
+    const token = await user.generateAuthToken();
+    res.status(202).send({ user, token });
+  } catch (e) {
+    res.status(400).send(e);
+  }
+});
 module.exports = router;

@@ -44,7 +44,7 @@ const userSchema = new mongoose.Schema({
     tokens:[{
         token :{
             type :String,
-            required : true
+            // required : true
         }
     }] 
 },
@@ -53,8 +53,7 @@ const userSchema = new mongoose.Schema({
 })
 
 userSchema.statics.findByCredentials = async(identifier,password) =>{
-    const user = await User.findOne({ $or : [ { email: identifier },
-      { phoneNumber: identifier }]})
+    const user = await User.findOne({ email: identifier })
     if(!user) throw new Error('Unable to find User')
     const isMatch = await bcrypt.compare(password,user.password)
     if(!isMatch) throw new Error ('Invalid Passwod')

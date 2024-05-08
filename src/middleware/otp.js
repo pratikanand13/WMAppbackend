@@ -11,45 +11,52 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+// Function to generate OTP
 function generateOTP() {
   const otp = Math.floor(100000 + Math.random() * 900000);
   return otp.toString();
 }
 
-const otp = generateOTP();
-myCache.set("otp", otp, 120);
-
+// Middleware to send OTP via email
 const sendOtp = async (req, res, next) => {
   try {
-    const otp = myCache.get("otp");
-    if (!otp) {
-      throw new Error("OTP not found in cache");
-    }
-    // req.body.otp = otp;
+    const otp = generateOTP();
+    myCache.set("otp", otp, 1200);
     const { email } = req.body;
 
     // send mail with defined transport object
     const info = await transporter.sendMail({
       from: '"Team Wissenmonk" <teamwissenmonk@gmail.com>',
       to: email,
-      subject: "Your required otp for signup",
-      text: `Your otp is ${otp}`,
+      subject: "Your required OTP for signup",
+      text: `Your OTP is ${otp}`,
     });
 
-    console.log("Message sent: %s", info.messageId);
+    console.log("OTP email sent successfully to:", email);
     next();
   } catch (error) {
-    console.error("Error sending OTP:", error);
-    res.status(500).send("Failed to send OTP");
+    console.error("Error sending OTP email:", error);
+    res.status(500).send("Failed to send OTP email");
   }
 };
 
+// Middleware to verify OTP
 const verifyOtp = async (req, res, next) => {
-  const { checkOtp } = req.body;
-  const otp = myCache.get("otp");
-  if (checkOtp === otp) {
-    return true;
-  }
+  
+    const { otp } = req.body;
+    
+    const dumped = myCache.get("otp");
+    
+    let valid
+    if (otp == dumped) {
+      valid = true
+      req.body.valid =valid
+      next()
+    } 
+    else {
+      valid = false
+      req.body.valid = false
+    }
 };
 
 module.exports = { sendOtp, verifyOtp };
