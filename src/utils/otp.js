@@ -18,11 +18,10 @@ function generateOTP() {
 }
 
 // Middleware to send OTP via email
-const sendOtp = async (req, res, next) => {
-  try {
+const sendOtp = async (email) => {
+  
     const otp = generateOTP();
     myCache.set("otp", otp, 1200);
-    const { email } = req.body;
 
     // send mail with defined transport object
     const info = await transporter.sendMail({
@@ -33,30 +32,26 @@ const sendOtp = async (req, res, next) => {
     });
 
     console.log("OTP email sent successfully to:", email);
-    next();
-  } catch (error) {
-    console.error("Error sending OTP email:", error);
-    res.status(500).send("Failed to send OTP email");
-  }
+    
+  
 };
 
-// Middleware to verify OTP
-const verifyOtp = async (req, res, next) => {
+
+const verifyOtp = async (otp) => {
   
-    const { otp } = req.body;
-    
-    const dumped = myCache.get("otp");
-    
-    let valid
-    if (otp == dumped) {
-      valid = true
-      req.body.valid =valid
-      next()
-    } 
-    else {
-      valid = false
-      req.body.valid = false
+    const cachedOTP = myCache.get("otp");
+    if (otp === cachedOTP) {
+      
+      console.log("OTP verified successfully");
+      return true
+    } else {
+      
+      console.log("Invalid OTP");
+      return false;
     }
+
+    
+  
 };
 
 module.exports = { sendOtp, verifyOtp };
