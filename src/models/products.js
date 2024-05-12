@@ -83,7 +83,15 @@ productSchema.statics.findByCategory = async (category) => {
 
     return formattedProducts;
 }
-
+productSchema.statics.placeOrder = async (productId,quantity) => {
+    
+    const product = await Product.findById(productId)
+    if(product.countInStock > parseInt(quantity) )
+        return true
+    else {
+      return false  
+    }
+}
 
 
 const Product = mongoose.model('Product', productSchema);

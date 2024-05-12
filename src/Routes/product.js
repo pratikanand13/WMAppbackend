@@ -32,11 +32,8 @@ router.get('/list', async (req, res) => {
 
     })
 
-router.get('/list/:id' ,async(req,res)=> {
-    console.log('1')
-    let productId = req.params.id
-    
-    console.log(productId)
+router.post('/list/:id' ,async(req,res)=> {
+    let productId = req.params.id  
     try {
         let singleProduct = await Product.findOne({ _id: productId }); 
         res.json(singleProduct);
