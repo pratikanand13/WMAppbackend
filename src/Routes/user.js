@@ -28,7 +28,7 @@ router.post("/user/signUp/userInput",async (req, res) => {
       const user = new User(req.body);
       await user.save();
       const token = await user.generateAuthToken();
-      res.status(200).send({ user });
+      res.status(200).send({ user,token });
     } catch (e) {
       res.status(400).send({ error: e.message });
     }
