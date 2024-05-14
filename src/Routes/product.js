@@ -32,15 +32,19 @@ router.get('/list', async (req, res) => {
 
     })
 
-router.post('/list/:id' ,async(req,res)=> {
-    let productId = req.params.id  
-    try {
-        let singleProduct = await Product.findOne({ _id: productId }); 
-        res.json(singleProduct);
-    } catch(err){
-        res.status(500).send(err.message);
-    }
-});
+    router.get('/list/:id', async (req, res) => {
+        try {
+            const productId = req.params.id;
+            const objectId = mongoose.Types.ObjectId(productId);
+            const product = await Product.findById(objectId);
+            if (!product) {
+                return res.status(404).send('Product not found');
+            }
+            res.send(product);
+        } catch (err) {
+            res.status(500).send(err.message);
+        }
+    });
 
 
 module.exports = router

@@ -1,98 +1,62 @@
 const mongoose = require('mongoose');
 
 const productSchema = mongoose.Schema({
-    name: {
-        type: String,
-        required: true,
-    },
-    description: {
-        type: String,
-        required: true
-    },
-    image: {
-        type: String,
-        default: ''
-    },
-    images: [{
-        type: String
-    }],
-    brand: {
-        type: String,
-        default: ''
-    },
-    price : {
-        type: Number,
-        default:0
-    },
-    category: {
-        type: String,
-        ref: 'Category',
-        required:true
-    },
-    countInStock: {
-        type: Number,
-        required: true,
-        min: 0,
-        max: 255
-    },
-    rating: {
-        type: Number,
-        default: 0,
-    },
-    numReviews: {
-        type: Number,
-        default: 0,
-    },
-    isFeatured: {
-        type: Boolean,
-        default: false,
-    },
-    dateCreated: {
-        type: Date,
-        default: Date.now,
-    },
-})
+    name: { type: String, required: true },
+    description: { type: String, required: true },
+    image: { type: String, default: '' },
+    images: [{ type: String }],
+    brand: { type: String, default: '' },
+    price: { type: Number, default: 0 },
+    category: { type: String, ref: 'Category', required: true },
+    countInStock: { type: Number, required: true, min: 0, max: 255 },
+    rating: { type: Number, default: 0 },
+    numReviews: { type: Number, default: 0 },
+    isFeatured: { type: Boolean, default: false },
+    dateCreated: { type: Date, default: Date.now }
+});
 
-productSchema.statics.findByRating = async (category) => {
+productSchema.statics.findByRating = async function(category) {
     try {
-        const products = await Product.find({ category }).limit(10);
-        
-        const formattedProducts = products.map(product => ({
+        const products = await this.find({ category }).limit(10);
+        return products.map(product => ({
             productId: product._id,
             name: product.name,
             price: product.price,
             rating: product.rating,
-            image: product.image // Assuming image field is stored as URL in the database
+            image: product.image
         }));
-
-        return formattedProducts;
     } catch (error) {
-        throw new Error("Error finding products")
+        throw new Error("Error finding products");
     }
 };
 
-productSchema.statics.findByCategory = async (category) => {
-    const products = await Product.find({ category })
-    const formattedProducts = products.map(product => ({
+productSchema.statics.findByCategory = async function(category) {
+    const products = await this.find({ category });
+    return products.map(product => ({
         productId: product._id,
         name: product.name,
         price: product.price,
         rating: product.rating,
-        image: product.image // Assuming image field is stored as URL in the database
+        image: product.image
     }));
+};
 
-    return formattedProducts;
-}
-productSchema.statics.placeOrder = async (productId,quantity) => {
-    
-    const product = await Product.findById(productId)
-    if(product.countInStock > parseInt(quantity) )
-        return true
-    else {
-      return false  
+productSchema.statics.placeOrder = async function(productId, quantity) {
+    const product = await this.findById(productId);
+    if (product.countInStock >= parseInt(quantity)) {
+        product.countInStock -= parseInt(quantity);
+        await product.save();
+        return true;
+    } else {
+        return false;
     }
-}
+};
 
+productSchema.methods.toJSON = function () {
+    const productObject = this.toObject();
+    delete productObject.__v;
+    return productObject;
+};
 
 const Product = mongoose.model('Product', productSchema);
-module.exports = Product
+module.exports = Product;
