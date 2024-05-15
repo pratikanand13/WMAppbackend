@@ -23,7 +23,8 @@ productSchema.statics.findByRating = async function(category) {
             name: product.name,
             price: product.price,
             rating: product.rating,
-            image: product.image
+            image: product.image,
+            category: product.category
         }));
     } catch (error) {
         throw new Error("Error finding products");
