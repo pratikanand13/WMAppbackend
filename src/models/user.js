@@ -41,6 +41,9 @@ const userSchema = new mongoose.Schema({
     avatar : {
         type : Buffer
     },
+    favRead : {
+        type : String,
+    },
     tokens:[{
         token :{
             type :String,
@@ -61,6 +64,11 @@ userSchema.statics.findByCredentials = async(identifier,password) =>{
   
   }
   
+userSchema.statics.getuserGenre = async(userId) => {
+    const user = await User.findById(userId)
+    console.log(user.favRead)
+    return user.favRead
+}  
 
 
 userSchema.methods.toJSON = function () { 

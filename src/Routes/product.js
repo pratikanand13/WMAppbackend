@@ -1,10 +1,17 @@
 const express = require('express')
 const Product = require('../models/products')
 const router = new express.Router();
-
+const User = require('../models/user')
+const auth = require('../middleware/userAuth')
 // GET all products
-router.get('/list', async (req, res) => {
+router.get('/list',auth, async (req, res) => {
+    console.log(req.user)
+    let genre = await User.getuserGenre(req.user._id)
+    // let Usergenre = JSON.stringify(genre)
+    // console.log(Usergenre)
     const categories = ['fiction', 'non_fiction', 'poetry', 'drama'];
+    categories.push(genre)
+    console.log(categories)
     try {
         const topProductsPromises = categories.map(category => Product.findByRating(category));
         
@@ -19,7 +26,7 @@ router.get('/list', async (req, res) => {
 
 //GET Product by id
 
-    router.get('/list/:category' , async(req,res)=> {
+    router.get('/list/:category' ,auth, async(req,res)=> {
         let productCategory= req.params.category
         
         try{
@@ -32,7 +39,7 @@ router.get('/list', async (req, res) => {
 
     })
 
-    router.get('/list/:id', async (req, res) => {
+    router.get('/list/:id',auth, async (req, res) => {
         try {
             const productId = req.params.id;
             const objectId = mongoose.Types.ObjectId(productId);
