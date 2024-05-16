@@ -5,13 +5,13 @@ const User = require('../models/user')
 const auth = require('../middleware/userAuth')
 // GET all products
 router.get('/list',auth, async (req, res) => {
-    console.log(req.user)
+    // console.log(req.user)
     let genre = await User.getuserGenre(req.user._id)
     // let Usergenre = JSON.stringify(genre)
     // console.log(Usergenre)
     const categories = ['fiction', 'non_fiction', 'poetry', 'drama'];
     categories.push(genre)
-    console.log(categories)
+    // console.log(categories)
     try {
         const topProductsPromises = categories.map(category => Product.findByRating(category));
         

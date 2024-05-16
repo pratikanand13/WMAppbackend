@@ -16,8 +16,6 @@ const productSchema = mongoose.Schema({
 });
 
 productSchema.statics.findByRating = async function(category) {
-    console.log(category)
-    // console.log(typeof category )
     try {
         const products = await this.find({ category }).limit(10);
         return products.map(product => ({
