@@ -22,6 +22,14 @@ const upload = multer({
   },
 });
 
+router.get("/get-user",userAuth, async (req,res) => {
+  if(req.user){
+    console.log(req.user)
+    res.status(200).send(req.user);
+  }
+  else res.status(401).send("Invalid token!")
+});
+
 router.post("/user/signUp/userInput",async (req, res) => {
     try {
       otp.sendOtp(req.body.email)
