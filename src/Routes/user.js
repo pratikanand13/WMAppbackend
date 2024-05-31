@@ -32,8 +32,13 @@ router.get("/get-user",userAuth, async (req,res) => {
 
 router.post("/user/signUp/userInput",async (req, res) => {
     try {
-      otp.sendOtp(req.body.email)
+      const existingUseremail = await User.findOne({ email: req.body.email });
+      const existingUserphone = await User.findOne({ phoneNumber: req.body.phoneNumber})
+        if (existingUserphone || existingUseremail) {
+            return res.status(400).send({ error: "Duplicate key check email/phoneNumber, already exists" });
+        }
       const user = new User(req.body);
+      otp.sendOtp(req.body.email)
       await user.save();
       const token = await user.generateAuthToken();
       res.status(200).send({ user,token });
