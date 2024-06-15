@@ -1,5 +1,6 @@
 const express = require('express')
 const Product = require('../models/products')
+const mongoose = require('mongoose');
 const router = new express.Router();
 const User = require('../models/user')
 const auth = require('../middleware/userAuth')
@@ -9,7 +10,7 @@ router.get('/list',auth, async (req, res) => {
     let genre = await User.getuserGenre(req.user._id)
     // let Usergenre = JSON.stringify(genre)
     // console.log(Usergenre)
-    const categories = ['fiction', 'non_fiction', 'poetry', 'drama'];
+    const categories = ['ANTHOLOGY', 'POETRY', 'MEMOIR', 'SHORT_STORIES','HISTORICAL_FICTION','LITERARY _RESEARCH_PAPER','CLASSIC','CRIME_THRILLER','HORROR','SHORT STORIES_&_ESSAYS','CHILDREN_ BOOK','BIOGRAPHY',''];
     categories.push(genre)
     // console.log(categories)
     try {
@@ -39,10 +40,12 @@ router.get('/list',auth, async (req, res) => {
 
     })
 
-    router.get('/list/:id',auth, async (req, res) => {
+    router.post('/list/:id', auth, async (req, res) => {
         try {
             const productId = req.params.id;
-            const objectId = mongoose.Types.ObjectId(productId);
+            console.log(productId);
+            const objectId = new mongoose.Types.ObjectId(productId);
+            console.log(objectId);
             const product = await Product.findById(objectId);
             if (!product) {
                 return res.status(404).send('Product not found');
@@ -51,7 +54,6 @@ router.get('/list',auth, async (req, res) => {
         } catch (err) {
             res.status(500).send(err.message);
         }
-    });
-
+    });     
 
 module.exports = router
